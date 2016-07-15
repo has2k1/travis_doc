@@ -1,0 +1,15 @@
+# Configuration for coverage.py
+
+[run]
+branch = True
+source = travis_doc
+include = travis_doc/*
+omit =
+    setup.py
+    travis_doc/_version.py
+
+[report]
+exclude_lines =
+    pragma: no cover
+    def __repr__
+    if __name__ == .__main__.:
