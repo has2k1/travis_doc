@@ -54,7 +54,7 @@ script:
       py.test travis_doc/;
     elif [[ "$JOB" == "DOCS" ]]; then
       cd doc;
-      sphinx-build -W -b html -d {envtmpdir}/doctrees . {envtmpdir}/html;
+      sphinx-build -W -b html -d _build/doctrees . _build/html;
       if [ $? -ne 0 ]; then
          echo "Sphinx build error";
          exit 1;
