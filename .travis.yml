@@ -2,25 +2,66 @@ sudo: false
 
 language: python
 
-python: 3.5
+matrix:
+  fast_finish: true
+  include:
+    - python: 2.7
+      env:
+        - JOB: 'PY27'
+        - FULL_DEPS=true
+    - python: 3.5
+      env:
+        - JOB: 'PY35'
+        - FULL_DEPS=true
+    - python: 3.5
+      env:
+        - JOB: 'DOCS'
+        - FULL_DEPS=true
+        - ENCRYPTION_LABEL: 53eae54d31b1
+        - COMMIT_AUTHOR_EMAIL: has2k1@gmail.com
+    - python: 3.5
+      env:
+        - JOB: 'FLAKE8'
+        - FULL_DEPS=false
 
-env:
-  - TOXENV=py35
-  - TOXENV=py27
-  - TOXENV=docs
-  - TOXENV=flake8
 
 cache: pip
+
 
 notifications:
   email: false
 
+
 install:
-   - pip install -U tox
-   - pip install coveralls
+  # Dependencies
+  - if [[ "$FULL_DEPS" ]]; then
+      true;
+    fi
+  - if [[ "$JOB" == "PY27" ]] || [[ "$JOB" == "PY35" ]]; then
+      pip install pytest==2.9.2;
+      pip install pytest-cov;
+    elif [[ "$JOB" == "DOCS" ]]; then
+      pip install sphinx sphinx_rtd_theme;
+      python setup.py install;
+    elif [[ "$JOB" == "FLAKE8" ]]; then
+      pip install flake8;
+    fi
+
 
 script:
-   - tox -e $TOXENV
-
-after_success:
-   - coveralls --rcfile=.coveragerc
+  - if [[ "$JOB" == "PY27" ]] || [[ "$JOB" == "PY35" ]]; then
+      coverage erase;
+      py.test travis_doc/;
+    elif [[ "$JOB" == "DOCS" ]]; then
+      cd doc;
+      sphinx-build -W -b html -d {envtmpdir}/doctrees . {envtmpdir}/html;
+      if [ $? -ne 0 ]; then
+         echo "Sphinx build error";
+         exit 1;
+      else
+         cd ..;
+         ./deploy_documentation.sh;
+      fi;
+    elif [[ "$JOB" == "FLAKE8" ]]; then
+      flake8;
+    fi
